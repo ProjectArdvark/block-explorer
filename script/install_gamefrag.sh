@@ -1,37 +1,12 @@
 #!/bin/bash
 
-installNodeAndYarn () {
-    echo "Installing nodejs and yarn..."
-    sudo curl -sL https://deb.nodesource.com/setup_8.x | sudo bash -
-    sudo apt-get install -y nodejs npm
-    sudo curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
-    sudo echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-    sudo apt-get update -y
-    sudo apt-get install -y yarn
-    sudo npm install -g pm2
-    sudo ln -s /usr/bin/nodejs /usr/bin/node
-    sudo chown -R gamefrag:gamefrag /home/gamefrag/.config
-    clear
-}
-
-installMongo () {
-    echo "Installing mongodb..."
-    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5
-    sudo echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
-    sudo apt-get update -y
-    sudo apt-get install -y --allow-unauthenticated mongodb-org
-    sudo chown -R mongodb:mongodb /data/db
-    sudo systemctl start mongod
-    sudo systemctl enable mongod
-    mongo blockex --eval "db.createUser( { user: \"$rpcuser\", pwd: \"$rpcpassword\", roles: [ \"readWrite\" ] } )"
-    clear
-}
-
 installBlockEx () {
-    echo "Installing BlockEx..."
+    echo "Installing Block Explorer"
     git clone https://github.com/ProjectArdvark/block-explorer.git /home/gamefrag/block-explorer
     cd /home/gamefrag/block-explorer
     yarn install
+	sudo chown -R gamefrag:gamefrag /home/gamefrag/.config
+	mongo blockex --eval "db.createUser( { user: \"$rpcuser\", pwd: \"$rpcpassword\", roles: [ \"readWrite\" ] } )"
     cat > /home/gamefrag/block-explorer/config.server.js << EOL
 /**
  * Keep all your API & secrets here. DO NOT IMPORT THIS FILE IN /client folder
@@ -328,14 +303,10 @@ clear
 # Check for blockex folder, if found then update, else install.
 if [ ! -d "/home/gamefrag/block-explorer" ]
 then
-    installMongo
-    #installGame-Frag
-    installNodeAndYarn
     installBlockEx
     echo "Finished installation!"
 else
     cd /home/gamefrag/block-explorer
     git pull
-    pm2 restart index
     echo "BlockEx updated!"
 fi
