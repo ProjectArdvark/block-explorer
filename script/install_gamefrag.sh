@@ -5,8 +5,8 @@ installBlockEx () {
     git clone https://github.com/ProjectArdvark/block-explorer.git /home/gamefrag/block-explorer
     cd /home/gamefrag/block-explorer
     yarn install
-	sudo chown -R gamefrag:gamefrag /home/gamefrag/.config
-	mongo blockex --eval "db.createUser( { user: \"$rpcuser\", pwd: \"$rpcpassword\", roles: [ \"readWrite\" ] } )"
+        sudo chown -R gamefrag:gamefrag /home/gamefrag/.config
+        mongo fragexplorer --eval "db.createUser( { user: \"fragblockexplorer\", pwd: \"fragblockexplorerpassword\", roles: [ \"readWrite\" ] } )"
     cat > /home/gamefrag/block-explorer/config.server.js << EOL
 /**
  * Keep all your API & secrets here. DO NOT IMPORT THIS FILE IN /client folder
@@ -15,15 +15,15 @@ const secretsConfig = {
   db: {
     host: '127.0.0.1',
     port: '27017',
-    name: 'blockex',
-    user: 'blockexuser',
-    pass: 'Explorer!1'
+    name: 'fragexplorer',
+    user: 'fragblockexplorer',
+    pass: 'fragblockexplorerpassword'
   },
   rpc: {
-    host: '127.0.0.1',
-    port: '52541',
-    user: 'coinrpc',
-    pass: 'someverysafepassword',
+    host: '10.36.12.4',
+    port: '42021',
+    user: 'fragblockexplorer',
+    pass: 'fragblockexplorerpass',
     timeout: 8000, // 8 seconds
   },
 }
@@ -35,19 +35,19 @@ const { SocialType } = require('./features/social/data');
 
 /**
  * Global configuration object.
- * 
+ *
  * Running:
  * yarn run start:api
  * yarn run start:web (Access project via http://localhost:8081/) (port comes from webpack.config.js)
- * 
+ *
  * For nginx server installation and production read /script/install.sh `installNginx ()`. Note that we use Certbot to grant SSL certificate.
- * 
+ *
  */
 const config = {
   api: {
-    host: 'http://localhost', // ex: 'https://explorer.game-frag.com' for nginx (SSL), 'http://IP_ADDRESS' 
+    host: 'http://localhost', // ex: 'https://explorer.game-frag.com' for nginx (SSL), 'http://IP_AD
     port: '3000', // ex: Port 3000 on prod and localhost
-    portWorker: '3000', // ex: Port 443 for production(ngingx) if you have SSL (we use certbot), 3000 on localhost or ip
+    portWorker: '3000', // ex: Port 443 for production(ngingx) if you have SSL (we use certbot), 300
     prefix: '/api',
     timeout: '5s'
   },
@@ -57,9 +57,9 @@ const config = {
     displayDecimals: 2,
     longName: 'Game-Frag Cryptocurrency',
     coinNumberFormat: '0,0.0000',
-    coinTooltipNumberFormat: '0,0.0000000000', // Hovering over a number will show a larger percision tooltip
+    coinTooltipNumberFormat: '0,0.0000000000', // Hovering over a number will show a larger percisio
     websiteUrl: 'https://www.game-frag.com/',
-    masternodeCollateral: 250000 // MN ROI% gets based on this number. If your coin has multi-tiered masternodes then set this to lowest tier (ROI% will simply be higher for bigger tiers)
+    masternodeCollateral: 250000 // MN ROI% gets based on this number. If your coin has multi-tiered
   },
   offChainSignOn: {
     enabled: true,
@@ -94,9 +94,8 @@ const config = {
       }
     }
   ],
-  
-  freegeoip: {
-    api: 'https://extreme-ip-lookup.com/json/' //@todo need to find new geoip service as the limits are too small now (hitting limits) 
+ freegeoip: {
+    api: 'https://extreme-ip-lookup.com/json/' //@todo need to find new geoip service as the limits are too small now (hitting limits)
   },
   coinMarketCap: {
     api: 'https://api.coingecko.com/api/v3/coins/',
@@ -124,7 +123,6 @@ const config = {
        * If you have governance voting in your coin you can add the voting addresses to below.
        * This is only requried because governance rewards are simply replacing MN block reward (so they are identical on the blockchain)
        */
-
       /*
       // 72000 FRAG 159ff849ae833c3abd05a7b36c5ecc7c4a808a8f1ef292dad0b02875009e009e
       "bZ1HJB1kEb1KFcVA42viGJPM7896rsRp9x",
@@ -149,7 +147,7 @@ const config = {
       */
     ]
   },
-  // Each address can contain it's own set of widgets and configs for those widgets
+ // Each address can contain it's own set of widgets and configs for those widgets
   addressWidgets: {
     'XXXXXXXXXXXXXXXXXXXXXXXXXXX': {
       // WIDGET: Adds a list of masternodes when viewing address. We use this to show community-ran masternodes
@@ -200,8 +198,7 @@ const config = {
       }
     },
   },
-
-  ///////////////////////////////
+ ///////////////////////////////
   // Adjustable POS Profitability Score - How profitable is your staking, tailored for your blockchain
   ///////////////////////////////
   profitabilityScore: {
@@ -259,29 +256,6 @@ const config = {
   verboseCronTx: false,             // If set to true there are extra tx logging details in cron scripts (Not recommended)
   blockSyncAddressCacheLimit: 50000 // How many addresses to keep in memory during block syncing (When this number is reached the entire cache is flushed and filled again from beginning)
 };
-
-module.exports = config;
-EOL
-    nodejs ./cron/block.js
-    nodejs ./cron/coin.js
-    nodejs ./cron/masternode.js
-    nodejs ./cron/peer.js
-    nodejs ./cron/rich.js
-    clear
-    cat > mycron << EOL
-*/1 * * * * cd /home/gamefrag/block-explorer && ./script/cron_block.sh >> ./tmp/block.log 2>&1
-*/1 * * * * cd /home/gamefrag/block-explorer && /usr/bin/nodejs ./cron/masternode.js >> ./tmp/masternode.log 2>&1
-*/1 * * * * cd /home/gamefrag/block-explorer && /usr/bin/nodejs ./cron/peer.js >> ./tmp/peer.log 2>&1
-*/1 * * * * cd /home/gamefrag/block-explorer && /usr/bin/nodejs ./cron/rich.js >> ./tmp/rich.log 2>&1
-*/5 * * * * cd /home/gamefrag/block-explorer && /usr/bin/nodejs ./cron/coin.js >> ./tmp/coin.log 2>&1
-0 0 * * * cd /home/gamefrag/block-explorer && /usr/bin/nodejs ./cron/timeIntervals.js >> ./tmp/timeIntervals.log 2>&1
-EOL
-    crontab mycron
-    rm -f mycron
-    pm2 start ./server/index.js
-    sudo pm2 startup ubuntu
-}
-
 # Setup
 echo "Updating system..."
 sudo apt-get update -y
@@ -298,7 +272,6 @@ echo "PWD: $PWD"
 echo "User: $rpcuser"
 echo "Pass: $rpcpassword"
 sleep 5s
-clear
 
 # Check for blockex folder, if found then update, else install.
 if [ ! -d "/home/gamefrag/block-explorer" ]
