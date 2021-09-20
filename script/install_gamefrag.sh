@@ -5,8 +5,8 @@ installBlockEx () {
     git clone https://github.com/ProjectArdvark/block-explorer.git /home/gamefrag/block-explorer
     cd /home/gamefrag/block-explorer
     yarn install
-        sudo chown -R gamefrag:gamefrag /home/gamefrag/.config
-        mongo fragexplorer --eval "db.createUser( { user: \"fragblockexplorer\", pwd: \"fragblockexplorerpassword\", roles: [ \"readWrite\" ] } )"
+    sudo chown -R gamefrag:gamefrag /home/gamefrag/.config
+    mongo fragexplorer --eval "db.createUser( { user: \"fragblockexplorer\", pwd: \"fragblockexplorerpassword\", roles: [ \"readWrite\" ] } )"
     cat > /home/gamefrag/block-explorer/config.server.js << EOL
 /**
  * Keep all your API & secrets here. DO NOT IMPORT THIS FILE IN /client folder
@@ -74,7 +74,6 @@ const config = {
       afterTitle: 'Phase Active For' // What do we show after the block number is hit?
     }
   ],
-
 
   /**
    * API & Social configurations
@@ -256,6 +255,9 @@ const config = {
   verboseCronTx: false,             // If set to true there are extra tx logging details in cron scripts (Not recommended)
   blockSyncAddressCacheLimit: 50000 // How many addresses to keep in memory during block syncing (When this number is reached the entire cache is flushed and filled again from beginning)
 };
+
+module.exports = config;
+EOL
 # Setup
 echo "Updating system..."
 sudo apt-get update -y
