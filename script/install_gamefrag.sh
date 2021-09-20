@@ -1,13 +1,15 @@
 #!/bin/bash
 
 installBlockEx () {
-    echo "Installing Block Explorer"
-    git clone https://github.com/ProjectArdvark/block-explorer.git /home/gamefrag/block-explorer
-    cd /home/gamefrag/block-explorer
-    yarn install
+	echo "Add mongo user..."
+	mongo fragexplorer --eval "db.createUser( { user: \"fragblockexplorer\", pwd: \"fragblockexplorerpass\", roles: [ \"readWrite\" ] } )"
+	echo "Correct conf dir perms.. "
 	sudo chown -R gamefrag:gamefrag /home/gamefrag/.config
-	mongo blockex --eval "db.createUser( { user: \"$rpcuser\", pwd: \"$rpcpassword\", roles: [ \"readWrite\" ] } )"
-    cat > /home/gamefrag/block-explorer/config.server.js << EOL
+    echo "Installing BlockEx..."
+    git clone https://github.com/ProjectArdvark/block-explorer.git /home/gamefrag/blockex
+    cd /home/gamefrag/blockex
+    yarn install
+    cat > /home/gamefrag/blockex/config.server.js << EOL
 /**
  * Keep all your API & secrets here. DO NOT IMPORT THIS FILE IN /client folder
  */
@@ -17,10 +19,10 @@ const secretsConfig = {
     port: '27017',
     name: 'fragexplorer',
     user: 'fragblockexplorer',
-    pass: 'fragblockexplorerpassword'
+    pass: 'fragblockexplorerpass'
   },
   rpc: {
-    host: '10.36.12.4',
+    host: '10.36.12.3',
     port: '42021',
     user: 'fragblockexplorer',
     pass: 'fragblockexplorerpass',
@@ -30,7 +32,7 @@ const secretsConfig = {
 
 module.exports = { secretsConfig }; // This is returned as an object on purpose so you have to be explicit at stating that you are accessing a secrets config
 EOL
-    cat > /home/gamefrag/block-explorer/config.js << EOL
+    cat > /home/gamefrag/blockex/config.js << EOL
 const { SocialType } = require('./features/social/data');
 
 /**
@@ -45,21 +47,21 @@ const { SocialType } = require('./features/social/data');
  */
 const config = {
   api: {
-    host: 'http://localhost', // ex: 'https://explorer.game-frag.com' for nginx (SSL), 'http://IP_ADDRESS' 
+    host: 'http://localhost', // ex: 'https://explorer.bulwarkcrypto.com' for nginx (SSL), 'http://IP_ADDRESS' 
     port: '3000', // ex: Port 3000 on prod and localhost
     portWorker: '3000', // ex: Port 443 for production(ngingx) if you have SSL (we use certbot), 3000 on localhost or ip
     prefix: '/api',
     timeout: '5s'
   },
   coinDetails: {
-    name: 'Game-Frag',
+    name: 'GameFrag',
     shortName: 'FRAG',
     displayDecimals: 2,
-    longName: 'Game-Frag Cryptocurrency',
+    longName: 'GameFrag Cryptocurrency',
     coinNumberFormat: '0,0.0000',
     coinTooltipNumberFormat: '0,0.0000000000', // Hovering over a number will show a larger percision tooltip
-    websiteUrl: 'https://www.game-frag.com/',
-    masternodeCollateral: 250000 // MN ROI% gets based on this number. If your coin has multi-tiered masternodes then set this to lowest tier (ROI% will simply be higher for bigger tiers)
+    websiteUrl: 'https://bulwarkcrypto.com/',
+    masternodeCollateral: 5000 // MN ROI% gets based on this number. If your coin has multi-tiered masternodes then set this to lowest tier (ROI% will simply be higher for bigger tiers)
   },
   offChainSignOn: {
     enabled: true,
@@ -69,9 +71,9 @@ const config = {
   // Add any important block counting down in this array
   blockCountdowns: [
     {
-      block: 300153, // What block are we counting down to?
-      beforeTitle: 'Next Phase', // What do we show before the block number is hit?
-      afterTitle: 'Phase Active For' // What do we show after the block number is hit?
+      block: 602880, // What block are we counting down to?
+      beforeTitle: 'Next Superblock', // What do we show before the block number is hit?
+      afterTitle: 'Superblock Active For' // What do we show after the block number is hit?
     }
   ],
 
@@ -89,7 +91,7 @@ const config = {
       type: SocialType.Reddit, // What type of social widget is it?
       group: 'community', // Multiple social widget feeds can be combined into a single cross-app group feed
       options: {
-        subreddit: 'MyAwesomeCoin', // Coin as an example
+        subreddit: 'MyAwesomeCoin', // GameFragCoin as an example
         query: 'flair:"Community"' // Show only posts with Community flair (the little tag next to post) (You can empty this to show all posts or specify your own filter based on https://www.reddit.com/wiki/search)
       }
     }
@@ -99,8 +101,8 @@ const config = {
     api: 'https://extreme-ip-lookup.com/json/' //@todo need to find new geoip service as the limits are too small now (hitting limits) 
   },
   coinMarketCap: {
-    api: 'https://api.coingecko.com/api/v3/coins/',
-    ticker: 'game-frag'
+    api: 'http://api.coinmarketcap.com/v1/ticker/',
+    ticker: 'bulwark'
   },
 
   /**
@@ -189,7 +191,7 @@ const config = {
       // Adds a new label metadata address
       carverAddressLabelWidget: {
         label: 'Proof Of Work Rewards ðŸ’Ž',
-        title: 'Game-Frag started as a Proof Of Work & Masternode coin. Blocks would be mined by powerful computers and be rewarded for keeping up the network.'
+        title: 'GameFrag started as a Proof Of Work & Masternode coin. Blocks would be mined by powerful computers and be rewarded for keeping up the network.'
       }
     },
     'POS': {
@@ -254,7 +256,7 @@ const config = {
   ///////////////////////////////
   /// Cron & Syncing
   ///////////////////////////////
-  blockConfirmations: 50,           // We will re-check block "merkleroot" this many blocks back. If they differ we will then start unwinding carver movements one block at a time until correct block is found. (This is like min confirmations)
+  blockConfirmations: 10,           // We will re-check block "merkleroot" this many blocks back. If they differ we will then start unwinding carver movements one block at a time until correct block is found. (This is like min confirmations)
   verboseCron: true,                // If set to true there are extra logging details in cron scripts
   verboseCronTx: false,             // If set to true there are extra tx logging details in cron scripts (Not recommended)
   blockSyncAddressCacheLimit: 50000 // How many addresses to keep in memory during block syncing (When this number is reached the entire cache is flushed and filled again from beginning)
@@ -269,12 +271,12 @@ EOL
     nodejs ./cron/rich.js
     clear
     cat > mycron << EOL
-*/1 * * * * cd /home/gamefrag/block-explorer && ./script/cron_block.sh >> ./tmp/block.log 2>&1
-*/1 * * * * cd /home/gamefrag/block-explorer && /usr/bin/nodejs ./cron/masternode.js >> ./tmp/masternode.log 2>&1
-*/1 * * * * cd /home/gamefrag/block-explorer && /usr/bin/nodejs ./cron/peer.js >> ./tmp/peer.log 2>&1
-*/1 * * * * cd /home/gamefrag/block-explorer && /usr/bin/nodejs ./cron/rich.js >> ./tmp/rich.log 2>&1
-*/5 * * * * cd /home/gamefrag/block-explorer && /usr/bin/nodejs ./cron/coin.js >> ./tmp/coin.log 2>&1
-0 0 * * * cd /home/gamefrag/block-explorer && /usr/bin/nodejs ./cron/timeIntervals.js >> ./tmp/timeIntervals.log 2>&1
+*/1 * * * * cd /home/gamefrag/blockex && ./script/cron_block.sh >> ./tmp/block.log 2>&1
+*/1 * * * * cd /home/gamefrag/blockex && /usr/bin/nodejs ./cron/masternode.js >> ./tmp/masternode.log 2>&1
+*/1 * * * * cd /home/gamefrag/blockex && /usr/bin/nodejs ./cron/peer.js >> ./tmp/peer.log 2>&1
+*/1 * * * * cd /home/gamefrag/blockex && /usr/bin/nodejs ./cron/rich.js >> ./tmp/rich.log 2>&1
+*/5 * * * * cd /home/gamefrag/blockex && /usr/bin/nodejs ./cron/coin.js >> ./tmp/coin.log 2>&1
+0 0 * * * cd /home/gamefrag/blockex && /usr/bin/nodejs ./cron/timeIntervals.js >> ./tmp/timeIntervals.log 2>&1
 EOL
     crontab mycron
     rm -f mycron
@@ -288,10 +290,10 @@ clear
 
 # Variables
 echo "Setting up variables..."
-fraglink=`curl -s https://api.github.com/repos/ProjectArdvark/block-explorer/releases/latest | grep browser_download_url | grep linux64 | cut -d '"' -f 4`
+bwklink=`curl -s https://api.github.com/repos/ProjectArdvark/block-explorer/releases/latest | grep browser_download_url | grep linux64 | cut -d '"' -f 4`
 rpcuser=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 13 ; echo '')
 rpcpassword=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 32 ; echo '')
-echo "Repo: $fraglink"
+echo "Repo: $bwklink"
 echo "PWD: $PWD"
 echo "User: $rpcuser"
 echo "Pass: $rpcpassword"
@@ -299,12 +301,12 @@ sleep 5s
 clear
 
 # Check for blockex folder, if found then update, else install.
-if [ ! -d "/home/gamefrag/block-explorer" ]
+if [ ! -d "/home/gamefrag/blockex" ]
 then
     installBlockEx
     echo "Finished installation!"
 else
-    cd /home/gamefrag/block-explorer
+    cd /home/gamefrag/blockex
     git pull
     echo "BlockEx updated!"
 fi
