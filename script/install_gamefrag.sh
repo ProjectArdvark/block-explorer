@@ -5,11 +5,13 @@ installBlockEx () {
 	mongo fragexplorer --eval "db.createUser( { user: \"fragblockexplorer\", pwd: \"fragblockexplorerpass\", roles: [ \"readWrite\" ] } )"
 	echo "Correct conf dir perms.. "
 	sudo chown -R gamefrag:gamefrag /home/gamefrag/.config
-    echo "Installing BlockEx..."
-    git clone https://github.com/ProjectArdvark/block-explorer.git /home/gamefrag/blockex
-    cd /home/gamefrag/blockex
+    echo "Installing fragexplorer..."
+    git clone https://github.com/ProjectArdvark/block-explorer.git /home/gamefrag/fragexplorer
+    cd /home/gamefrag/fragexplorer
+	egrep -lRZ 'blockex' . | xargs -0 -l sed -i -e 's/blockex/fragexplorer/g'
+	egrep -lRZ 'Explorer!1' . | xargs -0 -l sed -i -e 's/Explorer!1/fragexplorer/g'
     yarn install
-    cat > /home/gamefrag/blockex/config.server.js << EOL
+    cat > /home/gamefrag/fragexplorer/config.server.js << EOL
 /**
  * Keep all your API & secrets here. DO NOT IMPORT THIS FILE IN /client folder
  */
@@ -32,7 +34,7 @@ const secretsConfig = {
 
 module.exports = { secretsConfig }; // This is returned as an object on purpose so you have to be explicit at stating that you are accessing a secrets config
 EOL
-    cat > /home/gamefrag/blockex/config.js << EOL
+    cat > /home/gamefrag/fragexplorer/config.js << EOL
 const { SocialType } = require('./features/social/data');
 
 /**
@@ -271,12 +273,12 @@ EOL
     nodejs ./cron/rich.js
     clear
     cat > mycron << EOL
-*/1 * * * * cd /home/gamefrag/blockex && ./script/cron_block.sh >> ./tmp/block.log 2>&1
-*/1 * * * * cd /home/gamefrag/blockex && /usr/bin/nodejs ./cron/masternode.js >> ./tmp/masternode.log 2>&1
-*/1 * * * * cd /home/gamefrag/blockex && /usr/bin/nodejs ./cron/peer.js >> ./tmp/peer.log 2>&1
-*/1 * * * * cd /home/gamefrag/blockex && /usr/bin/nodejs ./cron/rich.js >> ./tmp/rich.log 2>&1
-*/5 * * * * cd /home/gamefrag/blockex && /usr/bin/nodejs ./cron/coin.js >> ./tmp/coin.log 2>&1
-0 0 * * * cd /home/gamefrag/blockex && /usr/bin/nodejs ./cron/timeIntervals.js >> ./tmp/timeIntervals.log 2>&1
+*/1 * * * * cd /home/gamefrag/fragexplorer && ./script/cron_block.sh >> ./tmp/block.log 2>&1
+*/1 * * * * cd /home/gamefrag/fragexplorer && /usr/bin/nodejs ./cron/masternode.js >> ./tmp/masternode.log 2>&1
+*/1 * * * * cd /home/gamefrag/fragexplorer && /usr/bin/nodejs ./cron/peer.js >> ./tmp/peer.log 2>&1
+*/1 * * * * cd /home/gamefrag/fragexplorer && /usr/bin/nodejs ./cron/rich.js >> ./tmp/rich.log 2>&1
+*/5 * * * * cd /home/gamefrag/fragexplorer && /usr/bin/nodejs ./cron/coin.js >> ./tmp/coin.log 2>&1
+0 0 * * * cd /home/gamefrag/fragexplorer && /usr/bin/nodejs ./cron/timeIntervals.js >> ./tmp/timeIntervals.log 2>&1
 EOL
     crontab mycron
     rm -f mycron
@@ -300,13 +302,13 @@ echo "Pass: $rpcpassword"
 sleep 5s
 clear
 
-# Check for blockex folder, if found then update, else install.
-if [ ! -d "/home/gamefrag/blockex" ]
+# Check for fragexplorer folder, if found then update, else install.
+if [ ! -d "/home/gamefrag/fragexplorer" ]
 then
     installBlockEx
     echo "Finished installation!"
 else
-    cd /home/gamefrag/blockex
+    cd /home/gamefrag/fragexplorer
     git pull
-    echo "BlockEx updated!"
+    echo "fragexplorer updated!"
 fi
