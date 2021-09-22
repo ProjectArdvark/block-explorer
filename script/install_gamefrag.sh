@@ -7,9 +7,10 @@ installBlockEx () {
 	sudo chown -R gamefrag:gamefrag /home/gamefrag/.config
     echo "Installing fragexplorer..."
     git clone https://github.com/ProjectArdvark/block-explorer.git /home/gamefrag/fragexplorer
-    cd /home/gamefrag/fragexplorer
+    cd /home/gamefrag/fragexplorer/public
 	egrep -lRZ 'blockex' . | xargs -0 -l sed -i -e 's/blockex/fragexplorer/g'
 	egrep -lRZ 'Explorer!1' . | xargs -0 -l sed -i -e 's/Explorer!1/fragexplorer/g'
+    cd ..
     yarn install
     cat > /home/gamefrag/fragexplorer/config.server.js << EOL
 /**
